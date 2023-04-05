@@ -1,0 +1,240 @@
+CREATE DATABASE karenlab;
+USE karenlab;
+
+CREATE TABLE Physicians
+(
+DrIDNumber varchar(20)PRIMARY KEY,
+DrFirstName varchar(50),
+DrLastName varchar(50),
+DrSpecialty varchar(50),
+NurseFirstName varchar(50),
+NurseLastName varchar (50));
+
+SHOW TABLES;
+
+DESCRIBE Physicians;
+
+INSERT INTO Physicians
+VALUES
+('1239862','Loren','Smith','PCP','Donnay','Gray'),
+('7210038','Glen','Dawson','OBGYN','Leslie','Brown'),
+('4512932','Kack','Campbell','Psychiatry','Bob','Tillman'),
+('4561239','Mary','Carson','PCP','none','none'),
+('2157982','Len','Davies','PCP','Mary','Lee'),
+('3287565','Jack','Latimer','Surgery','Maria','Ramirez');
+
+SELECT * from Physicians;
+
+SELECT DrIDNumber as NPI_Number, DrLastName from Physicians;
+CREATE TABLE Patients
+(IDNO varchar (20) PRIMARY KEY,
+Record_ID varchar (255),
+Last_Name varchar (255),
+First_Name varchar (255),
+PTN_name varchar (50),
+DOB Date,
+age int,
+sex_code varchar (5),
+Race varchar (20),
+Ethnicity varchar (20),
+Marital_Status varchar (50),
+Address varchar (50),
+City varchar (20),
+State varchar (10),
+Zipcode varchar (10),
+County varchar (15),
+Admit_MD varchar (50),
+Admit_Date Date,
+Admid_Day varchar (10),
+DC_Date Date,
+Length_of_stay Int,
+Total_charge Float (10,2),
+Admit_type varchar (50),
+Admit_Source varchar (50),
+DC_Disposition varchar (50),
+Age_code varchar (10),
+Insurance varchar (20),
+MS_MDC int,
+MS_DRG int,
+APR_DRG int,
+APR_Risk int,
+Total_Charge2 Float (7,2)
+);
+
+
+ALTER TABLE Patients
+ADD SYSBP Int
+DEFAULT 0;
+
+ALTER TABLE Patients
+ADD cost decimal (10,2)
+DEFAULT 0.00;
+
+ALTER TABLE Patients
+ADD Height int
+Default 0;
+
+ALTER TABLE Patients
+ADD Weight int
+Default 0;
+
+ALTER TABLE Patients
+ADD BMI Decimal (4,2);
+
+ALTER TABLE Patients
+ALTER BMI Set Default 0;
+
+SELECT * FROM Patients;
+
+SELECT * FROM Patients where age >60;
+
+SELECT IDNO, Last_Name, First_Name, sex_code from patients where sex_code like 'F' ORDER BY Last_Name;
+
+SELECT * FROM diagnosis1;
+SELECT * FROM diagnosis1 where Princ_Diag like 'Z38.31';
+
+SELECT * FROM Patients;
+SELECT * FROM Patients where DOB like MONTH(3);
+
+SELECT * FROM Patients where Insurance like 'Medicare%';
+
+SELECT IDNO, Last_Name, First_Name,
+CASE
+WHEN age > 0 and age<18 THEN "Youth"
+WHEN age > 18 and age < 35 THEN "Young Adult"
+WHEN age > 35 and age < 60 THEN "Adult"
+WHEN age > 60 THEN "Older Adult"
+ELSE "Unknown"
+END
+As Age_category
+From Patients;
+
+SELECT * FROM (SELECT * FROM patients ORDER BY age DESC LIMIT 10) AS topage ORDER BY age ASC;
+SELECT * FROM (SELECT * FROM patients ORDER BY Total_charge DESC LIMIT 10) AS topage ORDER BY Total_charge ASC;
+
+SELECT * FROM Physicians where DrFirstName like 'Jack';
+
+UPDATE Physicians
+SET DrFirstName='John'
+WHERE DrFirstName='JACK' AND DrLastName='LATIMER';
+
+SELECT * FROM Physicians WHERE DrFirstName='JACK';
+
+SELECT * FROM Physicians WHERE DrFirstName like 'J%';
+
+UPDATE Patients
+SET SYSBP = floor(90 + (rand()*(180-90)+1));
+
+UPDATE Patients
+SET Weight = floor(90 + (rand()*(220-90)+1));
+
+UPDATE Patients
+SET Height = floor(55 + (rand()*(74-55)+1));
+
+UPDATE Patients
+SET BMI = (weight / (height * height)) * 703;
+SELECT * FROM Patients;
+
+SELECT IDNO, Last_Name, First_Name,
+CASE
+WHEN BMI > 0 and BMI < 18.5 THEN "Underweight"
+WHEN BMI > 18.5 and BMI < 24.9 THEN "Normal"
+WHEN BMI > 25 and BMI < 29.9 THEN "Overweight"
+WHEN BMI >= 30 THEN "OBESE"
+ELSE "Unknown"
+END
+As BMI_category
+From Patients;
+
+SELECT COUNT(*) FROM Patients;
+
+SELECT * FROM Patients;
+SELECT COUNT(sex_code) FROM Patients WHERE SEX='M';
+SELECT COUNT(sex_code) FROM Patients WHERE SEX='F';
+
+SELECT DISTINCT City
+FROM Patients;
+
+SELECT city, count(IDNO) FROM Patients GROUP BY city;
+
+SELECT AVG(Age) FROM Patients;
+SELECT MIN(Age) FROM Patients;
+SELECT MAX(Age) FROM Patients;
+
+SELECT * FROM Patients WHERE Age >= 60 ORDER BY age, last_name;
+
+SELECT county, zipcode, COUNT(Zipcode)
+FROM Patients
+WHERE county LIKE 'Travis';
+
+SELECT Zipcode, county,
+COUNT(Zipcode)
+FROM Patients
+WHERE Zipcode LIKE '786%' or zipcode LIKE '787%'
+GROUP BY Zipcode;
+
+SELECT *
+FROM Patients
+INNER JOIN diagnosis1
+ON Patients.Record_ID=diagnosis1.MRNO
+Where Left(princ_diag,3) like 'U07'
+OR Left(second_diag,3) LIKE 'U07';
+SELECT *
+FROM Patients P
+INNER JOIN diagnosis1 D
+ON P.Record_ID=D.MRNO
+Where D.princ_diag like 'U07%'
+OR D.second_diag LIKE 'U07%';
+
+SELECT
+COUNT(P.IDNO)
+FROM Patients P INNER JOIN diagnosis1 D
+ON P.Record_ID=D.MRNO
+WHERE
+(Princ_diag LIKE 'A41%'
+OR second_diag LIKE 'A41%')
+or
+Left (Princ_Diag,3) LIKE 'E11'
+OR Left(Second_Diag,3) like 'E11';
+
+SELECT *
+FROM Patients
+INNER JOIN diagnosis1
+ON Patients.Record_ID=diagnosis1.MRNO
+Where Left(POA_PRINC_DIAG_CODE,3) like 'N';
+
+select p.last_name,p.sex_code,d.princ_diag,d.icd10_desc
+from patients as p inner join diagnosis1 as d on p.record_id=d.mrno
+where d.princ_diag like 'z38.31'and p.sex_code like 'm';
+ 
+SELECT *
+FROM Patients
+INNER JOIN diagnosis1
+ON Patients.Record_ID=diagnosis1.MRNO
+Where Left(ICD10_DESC,3) like 'MAJOR DEPRESSIVE DISORDER%'
+OR Left(sex_code,3) LIKE 'F';
+
+#Creating a view
+CREATE VIEW myview AS
+SELECT IDNO, Last_name, First_name
+FROM Patients
+WHERE age >50;
+
+CREATE VIEW MYVIEW1 AS
+SELECT * FROM Patients
+INNER JOIN diagnosis1
+ON Patients.Record_ID=diagnosis1.MRNO
+
+DELIMITER $$
+CREATE PROCEDURE DiabAge50_2()
+BEGIN
+SELECT
+COUNT(Patients.IDNO)
+FROM Patients INNER JOIN diagnosis1
+ON Patients.Record_ID=diagnosis1.MRNO
+WHERE
+Left(princ_diag,3) LIKE 'E11' OR Left(second_diag,3) LIKE 'E11'
+AND (Age>50);
+END $$
+
+Call DiabAge50_2;
